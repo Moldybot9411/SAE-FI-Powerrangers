@@ -18,7 +18,6 @@
             Hello, SAE!
         </TextBlock>
         
-        <Button Width="70" Height="20" Name="HelloButton" Grid.Row="2" Grid.RowSpan="1" Click="HelloButton_Click">Say Hello!</Button>
-        <Button Width="70" Height="20" Name="btnAuswerten" Grid.Row="3" Grid.RowSpan="1" Click="BtnAuswerten_Click">Auswerten</Button>
+        <Button Width="70" Height="20" Name="buttonimportCSV" Grid.Row="2" Grid.RowSpan="1" Click="ImportCSV">ImportCSV</Button>
     </Grid>
 </Window>

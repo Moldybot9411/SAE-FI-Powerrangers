@@ -1,48 +1,31 @@
-﻿using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+﻿using System.Windows;
+using SAE_FI.Services;
 
 namespace SAE_FI
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
+        private readonly CsvService _csvService = new();
+        private readonly SqliteService _dbService = new("data.db");
+
         public MainWindow()
         {
             InitializeComponent();
+            _dbService.ApplyMigration("./Migration/01-setup.sql");
         }
 
-        private void HelloButton_Click(object sender, RoutedEventArgs e)
+        private void ImportCSV(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Hello there!");
-        }
-        private void BtnAuswerten_Click(object sender, RoutedEventArgs e)
-        {
-            //Zugriff auf Datei erstellen.
+            var rows = _csvService.Read("temps.csv");
 
-            //Anfangswert setzen, um sinnvoll vergleichen zu können.
+            if (rows.Count == 0)
+            {
+                MessageBox.Show("Keine gültigen Daten gefunden.");
+                return;
+            }
 
-
-            //In einer Schleife die Werte holen und auswerten. Den größten Wert "merken".
-
-
-            //Datei wieder freigeben.
-
-
-            //Höchstwert auf Oberfläche ausgeben.
-
-            MessageBox.Show("Gleich kachelt das Programm...");
-            //kommentieren Sie die Exception aus.
-            //throw new Exception("peng");
+            _dbService.Insert(rows);
+            MessageBox.Show($"{rows.Count} Datensätze importiert.");
         }
     }
 }

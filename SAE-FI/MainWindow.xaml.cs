@@ -25,5 +25,24 @@ namespace SAE_FI
         {
             MessageBox.Show("Hello there!");
         }
+        private void BtnAuswerten_Click(object sender, RoutedEventArgs e)
+        {
+            //Zugriff auf Datei erstellen.
+
+            //Anfangswert setzen, um sinnvoll vergleichen zu können.
+
+
+            //In einer Schleife die Werte holen und auswerten. Den größten Wert "merken".
+
+
+            //Datei wieder freigeben.
+
+
+            //Höchstwert auf Oberfläche ausgeben.
+
+            MessageBox.Show("Gleich kachelt das Programm...");
+            //kommentieren Sie die Exception aus.
+            //throw new Exception("peng");
+        }
     }
 }

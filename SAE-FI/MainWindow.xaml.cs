@@ -11,7 +11,7 @@ namespace SAE_FI
         public MainWindow()
         {
             InitializeComponent();
-            _dbService.ApplyMigration("./Migration/migration.sql");
+            _dbService.ApplyMigration("./Migration/01-setup.sql");
         }
 
         private void ImportCSV(object sender, RoutedEventArgs e)

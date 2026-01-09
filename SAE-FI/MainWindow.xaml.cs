@@ -1,17 +1,25 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
+using SAE_FI.Models;
 using SAE_FI.Services;
 
 namespace SAE_FI
 {
     public partial class MainWindow : Window
     {
-        private readonly CsvService _csvService = new();
-        private readonly SqliteService _dbService = new("data.db");
+        private readonly CsvService _csvService = new(); 
+
+        private readonly ApplicationManager _appManager;
 
         public MainWindow()
         {
             InitializeComponent();
-            _dbService.ApplyMigration("./Migration/01-setup.sql");
+            var dbFactory = new DatabaseConnectionFactory("data.db");
+            var migrationService = new MigrationService(dbFactory);
+            var repository = new MeasurementRepository(dbFactory);
+            var statsService = new TemperatureStatisticsService(dbFactory);
+            _appManager = new ApplicationManager(migrationService, repository, statsService);
+            _appManager.ApplyMigration("./Migrations/01-setup.sql");
         }
 
         private void ImportCSV(object sender, RoutedEventArgs e)
@@ -24,17 +32,13 @@ namespace SAE_FI
                 return;
             }
 
-            _dbService.Insert(rows);
+            _appManager.ImportCsvData(rows);
             MessageBox.Show($"{rows.Count} Datensätze importiert.");
         }
 
         private void GetTemperatureStats(object sender, RoutedEventArgs e)
         {
-            var stats = _dbService.GetTemperatureStats();
-/*             var stats = _dbService.GetTemperatureStats(
-                new DateTime(2024, 1, 1),
-                new DateTime(2024, 1, 2)
-            ); */
+            var stats = _appManager.GetStats();
 
             MessageBox.Show(
                 $"From {stats.StartDate:d} to {stats.EndDate:d}\n\n" +

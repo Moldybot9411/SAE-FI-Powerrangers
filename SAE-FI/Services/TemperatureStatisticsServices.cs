@@ -20,9 +20,8 @@ namespace SAE_FI.Services
             cmd.Parameters.AddWithValue("$end", (object?)endDate ?? DBNull.Value);
         }
 
-        public TemperatureAverage GetAverage(DateTime? startDate, DateTime? endDate, string? sensor)
+        public TemperatureAverage GetAverage(SqliteConnection conn, DateTime? startDate, DateTime? endDate, string? sensor)
         {
-            using var conn = _connectionFactory.CreateConnection();
             using var cmd = conn.CreateCommand();
             cmd.CommandText =
             """
@@ -42,9 +41,8 @@ namespace SAE_FI.Services
             return new TemperatureAverage(Convert.ToDouble(result));
         }
 
-        private TemperatureExtreme GetExtreme(string order, DateTime? startDate, DateTime? endDate, string? sensor)
+        private TemperatureExtreme GetExtreme(SqliteConnection conn, string order, DateTime? startDate, DateTime? endDate, string? sensor)
         {
-            using var conn = _connectionFactory.CreateConnection();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = $"""
             SELECT Id, Sensor, Timestamp, Value
@@ -70,25 +68,54 @@ namespace SAE_FI.Services
             );
         }
 
-        public TemperatureExtreme GetMin(DateTime? startDate, DateTime? endDate, string? sensor)
-            => GetExtreme("ASC", startDate, endDate, sensor);
+        public TemperatureExtreme GetMin(SqliteConnection conn, DateTime? startDate, DateTime? endDate, string? sensor)
+            => GetExtreme(conn, "ASC", startDate, endDate, sensor);
 
-        public TemperatureExtreme GetMax(DateTime? startDate, DateTime? endDate, string? sensor)
-            => GetExtreme("DESC", startDate, endDate, sensor);
+        public TemperatureExtreme GetMax(SqliteConnection conn, DateTime? startDate, DateTime? endDate, string? sensor)
+            => GetExtreme(conn, "DESC", startDate, endDate, sensor);
 
         public TemperatureStats GetTemperatureStats(DateTime? startDate = null, DateTime? endDate = null, string? sensor = null)
         {
-            var avg = GetAverage(startDate, endDate, sensor);
-            var min = GetMin(startDate, endDate, sensor);
-            var max = GetMax(startDate, endDate, sensor);
+            using var conn = _connectionFactory.CreateConnection();
+
+            if (!startDate.HasValue || !endDate.HasValue)
+            {
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText =
+                """
+                SELECT MIN(Timestamp), MAX(Timestamp)
+                FROM Measurements
+                WHERE ($sensor IS NULL OR Sensor = $sensor)
+                """;
+                cmd.Parameters.AddWithValue("$sensor", (object?)sensor ?? DBNull.Value);
+
+                using var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    if (!startDate.HasValue && reader[0] != DBNull.Value)
+                        startDate = reader.GetDateTime(0);
+
+                    if (!endDate.HasValue && reader[1] != DBNull.Value)
+                        endDate = reader.GetDateTime(1);
+                }
+                else
+                {
+                    throw new InvalidOperationException("Keine Daten in der Datenbank gefunden.");
+                }
+            }
+
+            var avg = GetAverage(conn, startDate, endDate, sensor);
+            var min = GetMin(conn, startDate, endDate, sensor);
+            var max = GetMax(conn, startDate, endDate, sensor);
 
             return new TemperatureStats(
-                startDate ?? min.Timestamp,
-                endDate ?? max.Timestamp,
+                startDate!.Value,
+                endDate!.Value,
                 avg,
                 min,
                 max
             );
         }
+
     }
 }

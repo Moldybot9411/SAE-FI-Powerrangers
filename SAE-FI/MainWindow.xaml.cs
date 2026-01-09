@@ -39,7 +39,10 @@ namespace SAE_FI
         private void GetTemperatureStats(object sender, RoutedEventArgs e)
         {
             var stats = _appManager.GetStats();
-
+/*             var stats = _dbService.GetTemperatureStats(
+                new DateTime(2024, 1, 1),
+                new DateTime(2024, 1, 2)
+            ); */
             MessageBox.Show(
                 $"From {stats.StartDate:d} to {stats.EndDate:d}\n\n" +
 

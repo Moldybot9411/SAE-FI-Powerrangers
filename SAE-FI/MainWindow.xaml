@@ -21,5 +21,6 @@
         </TextBlock>
         
         <Button Width="70" Height="20" Name="buttonimportCSV" Grid.Row="2" Grid.RowSpan="1" Click="ImportCSV">ImportCSV</Button>
+        <Button Width="70" Height="20" Name="buttonGetTemperatureStats" Grid.Row="3" Grid.RowSpan="1" Click="GetTemperatureStats">GetTemperatureStats</Button>
     </Grid>
 </Window>

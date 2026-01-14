@@ -1,36 +1,21 @@
 using Microsoft.Data.Sqlite;
 using SAE_FI.Models;
-using System.IO;
+using System.Collections.Generic;
 
 namespace SAE_FI.Services
 {
-    public class SqliteService
+    public class MeasurementRepository
     {
-        private readonly string _dbPath;
+        private readonly DatabaseConnectionFactory _connectionFactory;
 
-        public SqliteService(string dbPath)
+        public MeasurementRepository(DatabaseConnectionFactory connectionFactory)
         {
-            _dbPath = dbPath;
-        }
-
-        private SqliteConnection Open()
-        {
-            var conn = new SqliteConnection($"Data Source={_dbPath}");
-            conn.Open();
-            return conn;
-        }
-
-        public void ApplyMigration(string migrationPath)
-        {
-            using var conn = Open();
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = File.ReadAllText(migrationPath);
-            cmd.ExecuteNonQuery();
+            _connectionFactory = connectionFactory;
         }
 
         public void Insert(IEnumerable<CsvRow> rows)
         {
-            using var conn = Open();
+            using var conn = _connectionFactory.CreateConnection();
             using var tx = conn.BeginTransaction();
 
             foreach (var r in rows)
@@ -41,7 +26,6 @@ namespace SAE_FI.Services
                 INSERT INTO Measurements (Sensor, Timestamp, Value)
                 VALUES ($sensor, $timestamp, $value)
                 """;
-
                 cmd.Parameters.AddWithValue("$sensor", r.Sensor);
                 cmd.Parameters.AddWithValue("$timestamp", r.Timestamp);
                 cmd.Parameters.AddWithValue("$value", r.Value);

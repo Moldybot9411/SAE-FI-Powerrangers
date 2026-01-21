@@ -14,6 +14,18 @@ namespace SAE_FI.Services
             _connectionFactory = connectionFactory;
         }
 
+        public void Delete()
+        {
+            using var conn = _connectionFactory.CreateConnection();
+            using var tx = conn.BeginTransaction();
+
+
+            using var clearCmd = conn.CreateCommand();
+            clearCmd.CommandText = "DELETE FROM Measurements;";
+            clearCmd.ExecuteNonQuery();
+            tx.Commit();
+        }
+
         public void Insert(IEnumerable<CsvRow> rows)
         {
             MessageBox.Show("insert geht los");

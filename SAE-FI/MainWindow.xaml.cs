@@ -35,6 +35,11 @@ namespace SAE_FI
             _appManager.ImportCsvData(rows);
             MessageBox.Show($"{rows.Count} Datensätze importiert.");
         }
+        private void DatenLöschen(object sender, RoutedEventArgs e)
+        {
+            _appManager.DeleteData();
+            MessageBox.Show($"Datensätze gelöscht.");
+        }
 
         private void GetTemperatureStats(object sender, RoutedEventArgs e)
         {

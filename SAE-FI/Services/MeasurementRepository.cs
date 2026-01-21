@@ -13,17 +13,23 @@ namespace SAE_FI.Services
             _connectionFactory = connectionFactory;
         }
 
-        public void Insert(IEnumerable<CsvRow> rows)
+        public void Delete()
         {
             using var conn = _connectionFactory.CreateConnection();
             using var tx = conn.BeginTransaction();
 
 
-            using (var clearCmd = conn.CreateCommand())
-            {
-                clearCmd.CommandText = "DELETE FROM Measurements;";
-                clearCmd.ExecuteNonQuery();
-            }
+            using var clearCmd = conn.CreateCommand();
+            clearCmd.CommandText = "DELETE FROM Measurements;";
+            clearCmd.ExecuteNonQuery();
+            tx.Commit();
+        }
+
+        public void Insert(IEnumerable<CsvRow> rows)
+        {
+            using var conn = _connectionFactory.CreateConnection();
+            using var tx = conn.BeginTransaction();
+
             foreach (var r in rows)
             {
                 using var cmd = conn.CreateCommand();

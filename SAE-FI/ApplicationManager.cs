@@ -32,6 +32,11 @@ namespace SAE_FI
         {
             _repository.Insert(rows);
         }
+        // Daten löschen
+        public void DeleteData()
+        {
+            _repository.Delete();
+        }
 
         // Stats
         public TemperatureStats GetStats(DateTime? start = null, DateTime? end = null, string? sensor = null)

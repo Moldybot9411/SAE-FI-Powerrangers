@@ -15,6 +15,7 @@
             <RowDefinition/>
             <RowDefinition/>
             <RowDefinition/>
+            <RowDefinition/>
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0"
@@ -40,5 +41,12 @@
             Grid.Row="3"
             Grid.RowSpan="1"
             Click="GetTemperatureStats">GetTemperatureStats</Button>
+        <Button
+            Style="{StaticResource SecondaryButton}"
+            Height="40"
+            Name="buttonDatenLöschen"
+            Grid.Row="4"
+            Grid.RowSpan="1"
+            Click="DatenLöschen">DatenLöschen</Button>
     </Grid>
 </Window>

@@ -18,6 +18,12 @@ namespace SAE_FI.Services
             using var conn = _connectionFactory.CreateConnection();
             using var tx = conn.BeginTransaction();
 
+
+            using (var clearCmd = conn.CreateCommand())
+            {
+                clearCmd.CommandText = "DELETE FROM Measurements;";
+                clearCmd.ExecuteNonQuery();
+            }
             foreach (var r in rows)
             {
                 using var cmd = conn.CreateCommand();

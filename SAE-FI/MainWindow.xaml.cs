@@ -2,12 +2,15 @@
 using System.Windows;
 using SAE_FI.Models;
 using SAE_FI.Services;
+using Microsoft.Win32;
+
 
 namespace SAE_FI
 {
     public partial class MainWindow : Window
     {
         private readonly CsvService _csvService = new(); 
+        private readonly Filepicker _filepicker = new(); 
 
         private readonly ApplicationManager _appManager;
 
@@ -22,9 +25,9 @@ namespace SAE_FI
             _appManager.ApplyMigration("./Migrations/01-setup.sql");
         }
 
-        private void ImportCSV(object sender, RoutedEventArgs e)
+        private void ImportCSV(string csvDatei)
         {
-            var rows = _csvService.Read("temps.csv");
+            var rows = _csvService.Read(csvDatei);
 
             if (rows.Count == 0)
             {
@@ -39,10 +42,10 @@ namespace SAE_FI
         private void GetTemperatureStats(object sender, RoutedEventArgs e)
         {
             var stats = _appManager.GetStats();
-/*             var stats = _dbService.GetTemperatureStats(
-                new DateTime(2024, 1, 1),
-                new DateTime(2024, 1, 2)
-            ); */
+            /*             var stats = _dbService.GetTemperatureStats(
+                            new DateTime(2024, 1, 1),
+                            new DateTime(2024, 1, 2)
+                        ); */
             MessageBox.Show(
                 $"From {stats.StartDate:d} to {stats.EndDate:d}\n\n" +
 
@@ -60,6 +63,24 @@ namespace SAE_FI
 
                 $"Avg: {stats.Average.Value:F1} °C"
             );
+        }
+        
+        private void Filepicker(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+
+            // Optional: Filter (z. B. nur Textdateien)
+            openFileDialog.Filter = "CSV (*.csv)|*.csv";
+            openFileDialog.Title = "Datei auswählen";
+
+            bool? result = openFileDialog.ShowDialog();
+
+            if (result == true)
+            {
+                string dateipfad = openFileDialog.FileName;
+                MessageBox.Show("Ausgewählte Datei:\n" + dateipfad+"\nwird geladen");
+                ImportCSV(dateipfad);
+            }
         }
     }
 }

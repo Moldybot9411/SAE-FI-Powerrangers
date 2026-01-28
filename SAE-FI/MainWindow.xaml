@@ -27,10 +27,10 @@
         <Button
             Style="{StaticResource PrimaryButton}"
             Height="40"
-            Name="buttonimportCSV"
+            Name="buttonFilepicker"
             Grid.Row="2"
             Grid.RowSpan="1"
-            Click="ImportCSV">ImportCSV</Button>
+            Click="Filepicker">Filepicker</Button>
         <Button
             Style="{StaticResource SecondaryButton}"
             Height="40"

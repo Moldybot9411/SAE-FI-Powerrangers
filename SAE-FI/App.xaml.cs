@@ -9,7 +9,7 @@ namespace SAE_FI
     /// </summary>
     public partial class App : Application
     {
-        
+
     }
 
 }

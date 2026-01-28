@@ -1,27 +1,26 @@
-﻿using System;
-using System.Windows;
-using SAE_FI.Models;
+﻿using System.Windows;
 using SAE_FI.Services;
-using Microsoft.Win32;
-
+using Wpf.Ui.Appearance;
+using Wpf.Ui.Controls;
+using MessageBox = System.Windows.MessageBox;
 
 namespace SAE_FI
 {
-    public partial class MainWindow : Window
+    public partial class MainWindow : FluentWindow
     {
-        private readonly CsvService _csvService = new(); 
-        private readonly Filepicker _filepicker = new(); 
+        private readonly CsvService _csvService = new();
 
-        private readonly ApplicationManager _appManager;
+        static DatabaseConnectionFactory dbFactory = new DatabaseConnectionFactory("data.db");
+        static MigrationService migrationService = new MigrationService(dbFactory);
+        static MeasurementRepository repository = new MeasurementRepository(dbFactory);
+        static TemperatureStatisticsService statsService = new TemperatureStatisticsService(dbFactory);
+        public static readonly ApplicationManager _appManager = new ApplicationManager(migrationService, repository, statsService);
 
         public MainWindow()
         {
             InitializeComponent();
-            var dbFactory = new DatabaseConnectionFactory("data.db");
-            var migrationService = new MigrationService(dbFactory);
-            var repository = new MeasurementRepository(dbFactory);
-            var statsService = new TemperatureStatisticsService(dbFactory);
-            _appManager = new ApplicationManager(migrationService, repository, statsService);
+
+            Loaded += (s, e) => RootNavigation.Navigate(typeof(HomePage));
             _appManager.ApplyMigration("./Migrations/01-setup.sql");
         }
 
@@ -42,50 +41,6 @@ namespace SAE_FI
         {
             _appManager.DeleteData();
             MessageBox.Show($"Datensätze gelöscht.");
-        }
-
-        private void GetTemperatureStats(object sender, RoutedEventArgs e)
-        {
-            var stats = _appManager.GetStats();
-            /*             var stats = _dbService.GetTemperatureStats(
-                            new DateTime(2024, 1, 1),
-                            new DateTime(2024, 1, 2)
-                        ); */
-            MessageBox.Show(
-                $"From {stats.StartDate:d} to {stats.EndDate:d}\n\n" +
-
-                $"Min:\n" +
-                $"  ID: {stats.Min.Id}\n" +
-                $"  Temp: {stats.Min.Value:F1} °C\n" +
-                $"  Sensor: {stats.Min.Sensor}\n" +
-                $"  Time: {stats.Min.Timestamp}\n\n" +
-
-                $"Max:\n" +
-                $"  ID: {stats.Max.Id}\n" +
-                $"  Temp: {stats.Max.Value:F1} °C\n" +
-                $"  Sensor: {stats.Max.Sensor}\n" +
-                $"  Time: {stats.Max.Timestamp}\n\n" +
-
-                $"Avg: {stats.Average.Value:F1} °C"
-            );
-        }
-        
-        private void Filepicker(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-
-            // Optional: Filter (z. B. nur Textdateien)
-            openFileDialog.Filter = "CSV (*.csv)|*.csv";
-            openFileDialog.Title = "Datei auswählen";
-
-            bool? result = openFileDialog.ShowDialog();
-
-            if (result == true)
-            {
-                string dateipfad = openFileDialog.FileName;
-                MessageBox.Show("Ausgewählte Datei:\n" + dateipfad+"\nwird geladen");
-                ImportCSV(dateipfad);
-            }
         }
     }
 }

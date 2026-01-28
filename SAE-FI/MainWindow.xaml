@@ -1,49 +1,43 @@
-﻿<Window x:Class="SAE_FI.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:SAE_FI"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid Width="700" Height="300">
-        <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-        </Grid.RowDefinitions>
+﻿<ui:FluentWindow x:Class="SAE_FI.MainWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                 xmlns:local="clr-namespace:SAE_FI"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 xmlns:pages="clr-namespace:SAE_FI"
+                 Title="MainWindow"
+                 Height="450"
+                 Width="800"
+                 WindowStyle="None">
+    <StackPanel>
+        <ui:TitleBar Title="Temperatur Analyse SAE-FI"/>
+        <ui:NavigationView
+            Margin="4"
+            PaneDisplayMode="Top"
+            x:Name="RootNavigation"
+            IsBackButtonVisible="Collapsed">
+            <ui:NavigationView.MenuItems>
+                <ui:NavigationViewItem Content="Home"
+                                       Icon="{ui:SymbolIcon Home24}"
+                                       TargetPageType="{x:Type pages:HomePage}"/>
 
-        <TextBlock Grid.Row="0"
-                   Grid.RowSpan="1"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontSize="30"
-                   FontFamily="Arial">
-            Temparaturanalyse
-        </TextBlock>
+                <ui:NavigationViewItem Content="Example"
+                                       Icon="{ui:SymbolIcon Library16}"
+                                       TargetPageType="{x:Type pages:ExamplePage}"/>
+            </ui:NavigationView.MenuItems>
 
-        <Button
-            Style="{StaticResource PrimaryButton}"
-            Height="40"
-            Name="buttonFilepicker"
-            Grid.Row="2"
-            Grid.RowSpan="1"
-            Click="Filepicker">Filepicker</Button>
-        <Button
-            Style="{StaticResource SecondaryButton}"
-            Height="40"
-            Name="buttonGetTemperatureStats"
-            Grid.Row="3"
-            Grid.RowSpan="1"
-            Click="GetTemperatureStats">GetTemperatureStats</Button>
-        <Button
-            Style="{StaticResource SecondaryButton}"
-            Height="40"
-            Name="buttonDatenLöschen"
-            Grid.Row="4"
-            Grid.RowSpan="1"
-            Click="DatenLöschen">DatenLöschen</Button>
-    </Grid>
-</Window>
+            <ui:NavigationView.FooterMenuItems>
+                <ui:Button
+                    Margin="0 0 4 0"
+                    Content=""
+                    Icon="{ui:SymbolIcon Delete12}"
+                    Click="DatenLöschen"/>
+                <ui:Button
+                    Content="Import CSV"
+                    Icon="{ui:SymbolIcon ArrowDownload16}"
+                    Click="ImportCSV"/>
+            </ui:NavigationView.FooterMenuItems>
+        </ui:NavigationView>
+    </StackPanel>
+</ui:FluentWindow>

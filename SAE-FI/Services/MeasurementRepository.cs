@@ -28,31 +28,39 @@ namespace SAE_FI.Services
 
         public void Insert(IEnumerable<CsvRow> rows)
         {
-            MessageBox.Show("insert geht los");
             using var conn = _connectionFactory.CreateConnection();
             using var tx = conn.BeginTransaction();
-            using var DBconnect = conn.CreateCommand();
-            DBconnect.CommandText = """DROP IF EXISTS Measurements; CREATE TABLE Measurements (Sensor, Timestamp, Value);""";
-            DBconnect.ExecuteNonQuery();
-            MessageBox.Show("droped and created new Table");
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText =
+            """
+            INSERT OR IGNORE INTO Measurements (Sensor, Timestamp, Value)
+            VALUES ($sensor, $timestamp, $value);
+            """;
+
+            var sensorParam = cmd.CreateParameter();
+            sensorParam.ParameterName = "$sensor";
+            cmd.Parameters.Add(sensorParam);
+
+            var timestampParam = cmd.CreateParameter();
+            timestampParam.ParameterName = "$timestamp";
+            cmd.Parameters.Add(timestampParam);
+
+            var valueParam = cmd.CreateParameter();
+            valueParam.ParameterName = "$value";
+            cmd.Parameters.Add(valueParam);
 
             foreach (var r in rows)
             {
-                using var cmd = conn.CreateCommand();
-
-                cmd.CommandText =
-                """
-                INSERT INTO Measurements (Sensor, Timestamp, Value)
-                VALUES ($sensor, $timestamp, $value)
-                """;
-                cmd.Parameters.AddWithValue("$sensor", r.Sensor);
-                cmd.Parameters.AddWithValue("$timestamp", r.Timestamp);
-                cmd.Parameters.AddWithValue("$value", r.Value);
+                sensorParam.Value = r.Sensor;
+                timestampParam.Value = r.Timestamp;
+                valueParam.Value = r.Value;
 
                 cmd.ExecuteNonQuery();
             }
 
             tx.Commit();
         }
+
     }
 }

@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System.IO;
+using System.Windows;
+using Microsoft.Win32;
 using SAE_FI.Services;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
@@ -24,18 +26,41 @@ namespace SAE_FI
             _appManager.ApplyMigration("./Migrations/01-setup.sql");
         }
 
-        private void ImportCSV(string csvDatei)
+        private void ImportCSV(object sender, RoutedEventArgs e)
         {
-            var rows = _csvService.Read(csvDatei);
+            OpenFileDialog openFileDialog = new OpenFileDialog();
 
-            if (rows.Count == 0)
+            // 2. Set filters (optional) - e.g., show only text files
+            openFileDialog.Filter = "CSV files (*.csv)|*.csv";
+            openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+            // 3. Show the dialog and check if the user clicked "Open"
+            // ShowDialog() returns a nullable bool (bool?). It is true if a file was selected.
+            if (openFileDialog.ShowDialog() == true)
             {
-                MessageBox.Show("Keine gültigen Daten gefunden.");
-                return;
-            }
+                try
+                {
+                    // 4. Read the file content
+                    string filePath = openFileDialog.FileName;
+                    
+                    var rows = _csvService.Read(filePath);
+        
+                    if (rows.Count == 0)
+                    {
+                        MessageBox.Show("Keine gültigen Daten gefunden.");
+                        return;
+                    }
+        
+                    _appManager.ImportCsvData(rows);
+                    MessageBox.Show($"{rows.Count} Datensätze importiert.");
+                
 
-            _appManager.ImportCsvData(rows);
-            MessageBox.Show($"{rows.Count} Datensätze importiert.");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error reading file: {ex.Message}", "Error", System.Windows.MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
         }
         private void DatenLöschen(object sender, RoutedEventArgs e)
         {

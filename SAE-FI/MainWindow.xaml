@@ -10,9 +10,15 @@
                  Height="450"
                  Width="800"
                  WindowStyle="None">
-    <StackPanel>
-        <ui:TitleBar Title="Temperatur Analyse SAE-FI"/>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <ui:TitleBar Title="Temperatur Analyse SAE-FI"
+                Grid.Row="0"/>
         <ui:NavigationView
+            Grid.Row="1"
             Margin="4"
             PaneDisplayMode="Top"
             x:Name="RootNavigation"
@@ -25,6 +31,10 @@
                 <ui:NavigationViewItem Content="Example"
                                        Icon="{ui:SymbolIcon Library16}"
                                        TargetPageType="{x:Type pages:ExamplePage}"/>
+
+                <ui:NavigationViewItem Content="3D View"
+                                       Icon="{ui:SymbolIcon GlanceHorizontalSparkles16}"
+                                       TargetPageType="{x:Type pages:HeatmapPage}"/>
             </ui:NavigationView.MenuItems>
 
             <ui:NavigationView.FooterMenuItems>
@@ -39,5 +49,5 @@
                     Click="ImportCSV"/>
             </ui:NavigationView.FooterMenuItems>
         </ui:NavigationView>
-    </StackPanel>
+    </Grid>
 </ui:FluentWindow>

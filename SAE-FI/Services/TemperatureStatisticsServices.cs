@@ -117,5 +117,33 @@ namespace SAE_FI.Services
             );
         }
 
+        public SensorStats[] GetSensorStats(DateTime startDate, DateTime endDate)
+        {
+            using var conn = _connectionFactory.CreateConnection();
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText =
+            """
+                SELECT sensor, AVG(value) FROM Measurements
+                WHERE timestamp BETWEEN @start AND @end
+                GROUP BY sensor
+                """;
+
+            cmd.Parameters.AddWithValue("@start", startDate);
+            cmd.Parameters.AddWithValue("@end", endDate);
+
+            List<SensorStats> result = new List<SensorStats>();
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                var sensor = reader.GetString(0);
+                var avg = reader.GetDouble(1);
+
+                result.Add(new SensorStats(sensor, avg));
+            }
+
+            return result.ToArray();
+        }
     }
 }

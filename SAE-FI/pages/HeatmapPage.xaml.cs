@@ -5,12 +5,6 @@ using Microsoft.Web.WebView2.Core;
 
 namespace SAE_FI;
 
-public struct SensorData
-{
-    public string SensorId { get; set; }
-    public double Temperature { get; set; }
-}
-
 public partial class HeatmapPage : Page
 {
     public HeatmapPage()
@@ -18,19 +12,6 @@ public partial class HeatmapPage : Page
         InitializeComponent();
 
         InitializeAsync();
-
-        SensorData[] data = {
-            new SensorData { SensorId = "S1", Temperature = 26.5 },
-            new SensorData { SensorId = "S2", Temperature = 80.0 }
-        };
-
-        string jsonString = JsonSerializer.Serialize(data);
-
-        if (webView.CoreWebView2 != null)
-        {
-            Console.WriteLine("Sending Data to WebView.");
-            webView.CoreWebView2.PostWebMessageAsJson(jsonString);
-        }
     }
 
     private async void InitializeAsync()
@@ -63,18 +44,10 @@ public partial class HeatmapPage : Page
 
     private void SendData()
     {
-        SensorData[] data = {
-            new SensorData { SensorId = "S1", Temperature = 90.0 },
-            new SensorData { SensorId = "S2", Temperature = 80.0 },
-            new SensorData { SensorId = "S3", Temperature = 50.0 },
-            new SensorData { SensorId = "S4", Temperature = 60.0 },
-            new SensorData { SensorId = "SD", Temperature = 30.0 },
-            new SensorData { SensorId = "SB", Temperature = 40.0 },
-        };
+        SensorStats[] data = MainWindow._appManager.GetSensorStats(DateTime.MinValue, DateTime.MaxValue);
 
         string jsonString = JsonSerializer.Serialize(data);
 
-        System.Diagnostics.Debug.WriteLine("Sende Daten an WebView...");
         webView.CoreWebView2.PostWebMessageAsJson(jsonString);
     }
 }

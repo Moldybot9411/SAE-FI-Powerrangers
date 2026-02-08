@@ -17,3 +17,8 @@ public record TemperatureStats(
     TemperatureExtreme Max
 );
 
+public record SensorStats(
+    string SensorId,
+    double Temperature
+);
+

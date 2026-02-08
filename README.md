@@ -14,3 +14,6 @@ Fynn Becker - FynnBec<br>
 cd SAE-FI
 dotnet run
 ```
+
+> [!WARNING]
+> Node muss installiert sein um das Projekt ausführen zu können. Es kann [hier](https://nodejs.org/en/download) heruntergeladen werden.

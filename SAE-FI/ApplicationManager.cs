@@ -43,5 +43,10 @@ namespace SAE_FI
         {
             return _statsService.GetTemperatureStats(start, end, sensor);
         }
+
+        public SensorStats[] GetSensorStats(DateTime start, DateTime end)
+        {
+            return _statsService.GetSensorStats(start, end);
+        }
     }
 }

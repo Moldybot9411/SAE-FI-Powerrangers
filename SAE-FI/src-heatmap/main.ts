@@ -1,6 +1,11 @@
 import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { HorizontalBlurShader } from 'three/examples/jsm/shaders/HorizontalBlurShader.js';
+import { VerticalBlurShader } from 'three/examples/jsm/shaders/VerticalBlurShader.js';
 
 // --- Types ---
 export interface SensorData {
@@ -51,7 +56,8 @@ let sensor_data: SensorData[] = [
     },
 ];
 
-const VOXEL_DENSITY = 0.75;
+const VOXEL_DENSITY = 0.25;
+const SHADER_BLUR = 2;
 const COLD = 20;
 const WARM = 70;
 const sensor_names: string[] = ["S1", "S2", "S3", "S4", "SB", "SD"];
@@ -70,6 +76,7 @@ if (window.chrome && window.chrome.webview) {
 // --- Three.js Setup ---
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.layers.set(1);
 const loader = new GLTFLoader();
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 
@@ -160,39 +167,137 @@ async function initScene() {
     }
 }
 
+// --- Composing ---
+const renderScene = new RenderPass(scene, camera);
+
+const blurComposer = new EffectComposer(renderer);
+blurComposer.renderToScreen = false;
+blurComposer.addPass(renderScene);
+
+const hBlur = new ShaderPass(HorizontalBlurShader);
+const vBlur = new ShaderPass(VerticalBlurShader);
+hBlur.uniforms.h.value = 1 / window.innerWidth * SHADER_BLUR;
+vBlur.uniforms.v.value = 1 / window.innerHeight * SHADER_BLUR;
+blurComposer.addPass(hBlur);
+blurComposer.addPass(vBlur);
+
+const MixShader = {
+    uniforms: {
+        baseTexture: { value: null },
+        blurTexture: { value: null }
+    },
+    vertexShader: `
+        varying vec2 vUv;
+        void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+        }
+    `,
+    fragmentShader: `
+        uniform sampler2D baseTexture;
+        uniform sampler2D blurTexture;
+        varying vec2 vUv;
+        void main() {
+            vec4 baseColor = texture2D( baseTexture, vUv );
+            vec4 blurColor = texture2D( blurTexture, vUv );
+            
+            gl_FragColor = baseColor + (blurColor * 0.5);
+        }
+    `
+};
+
+const finalComposer = new EffectComposer(renderer);
+finalComposer.addPass(renderScene);
+
+const mixPass = new ShaderPass(MixShader, "baseTexture");
+mixPass.needsSwap = true;
+finalComposer.addPass(mixPass);
+
+const maskMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+
 // Start Init
 initScene();
 
 // --- Functions ---
 function animate() {
-    renderer.render(scene, camera);
+    scene.traverse((obj) => {
+        if(obj instanceof THREE.Mesh) {
+            if (obj.layers.isEnabled(0)) {
+                obj.userData.oldMat = obj.material;
+                obj.material = maskMaterial;
+            }
+        }
+    })
+
+    camera.layers.enable(0);
+    camera.layers.enable(1);
+
+    blurComposer.render();
+    // finalComposer.render();
+    // return
+
+    scene.traverse((obj) => {
+        if(obj instanceof THREE.Mesh) {
+            if (obj.isMesh && obj.userData.oldMat) {
+                obj.material = obj.userData.oldMat;
+                delete obj.userData.oldMat;
+            }
+        }
+    })
+
+    camera.layers.set(0);
+    mixPass.uniforms.blurTexture.value = blurComposer.readBuffer.texture;
+
+    finalComposer.render();
 }
 
 window.addEventListener('resize', onWindowResize, false);
 
 function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    camera.aspect = width / height;
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    renderer.setSize(width, height);
+
+    blurComposer.setSize(width, height);
+    finalComposer.setSize(width, height);
+
+    if (hBlur.uniforms['h']) {
+        hBlur.uniforms['h'].value = (1 / width) * SHADER_BLUR;
+    }
+    
+    if (vBlur.uniforms['v']) {
+        vBlur.uniforms['v'].value = (1 / height) * SHADER_BLUR;
+    }
 }
 
 function build_heatmap(data: SensorData[]) {
-    const existingObject = scene.getObjectByName("VoxelGroup");
+    const existingObject = scene.getObjectByName("VoxelInstances");
     if(existingObject) scene.remove(existingObject);
 
-    const group = new THREE.Group();
-    group.name = "VoxelGroup";
-
-    const OFFSET_X = -7.5;
-    const OFFSET_Z = -4.5;
+    const OFFSET_X = -7.8;
+    const OFFSET_Z = -5.25;
 
     const xLimit = Math.floor(16 / VOXEL_DENSITY);
     const yLimit = Math.floor(6 / VOXEL_DENSITY);
-    const zLimit = Math.floor(10 / VOXEL_DENSITY);
+    const zLimit = Math.floor(10.75 / VOXEL_DENSITY);
 
     const scale = 1;
+    const dummy = new THREE.Object3D();
     const cubeGeometry = new THREE.BoxGeometry(VOXEL_DENSITY * scale, VOXEL_DENSITY * scale, VOXEL_DENSITY * scale);
+    const material = new THREE.MeshBasicMaterial({
+        
+    });
 
+    const instancedMesh = new THREE.InstancedMesh(cubeGeometry, material, xLimit * yLimit * zLimit);
+    instancedMesh.name = "VoxelInstances";
+    instancedMesh.layers.set(1);
+    scene.add(instancedMesh);
+
+    let x = 0;
     for (let i = 0; i < xLimit; i++) {
         for (let j = 0; j < yLimit; j++) {
             for (let k = 0; k < zLimit; k++) {
@@ -218,7 +323,6 @@ function build_heatmap(data: SensorData[]) {
 
                     const temp = currentSensorData.Temperature;
                     
-                    // Null/Undefined Check für Temperatur
                     if (temp === null || temp === undefined) continue;
 
                     weightedSum += temp * weight;
@@ -230,23 +334,16 @@ function build_heatmap(data: SensorData[]) {
                 const finalTemp = weightedSum / totalWeight;
                 const color = getTemperatureColor(finalTemp);
 
-                const material = new THREE.MeshBasicMaterial({
-                    transparent: true,
-                    opacity: 0.1,
-                    color: color,
-                    depthWrite: false,
-                    depthTest: true
-                });
+                dummy.position.copy(positionV3);
+                dummy.updateMatrix();
 
-                const mesh = new THREE.Mesh(cubeGeometry, material);
-                
-                mesh.position.copy(positionV3);
-                group.add(mesh);
+                instancedMesh.setMatrixAt(x, dummy.matrix);
+                instancedMesh.setColorAt(x, color);
+
+                x++;
             }
         }
     }
-
-    scene.add(group);
 }
 
 function getTemperatureColor(temp: number): THREE.Color {

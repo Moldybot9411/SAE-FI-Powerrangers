@@ -29,37 +29,37 @@ declare global {
 }
 
 // --- Globals ---
-let sensor_data: SensorData[] = [
-    {
-        SensorId: "S1",
-        Temperature: 90 
-    },
-    {
-        SensorId: "S2",
-        Temperature: 90 
-    },
-    {
-        SensorId: "S3",
-        Temperature: 40 
-    },
-    {
-        SensorId: "S4",
-        Temperature: 40
-    },
-    {
-        SensorId: "SB",
-        Temperature: 30 
-    },
-    {
-        SensorId: "SD",
-        Temperature: 20 
-    },
-];
+let sensor_data: SensorData[] = [];
+//     {
+//         SensorId: "S1",
+//         Temperature: 90 
+//     },
+//     {
+//         SensorId: "S2",
+//         Temperature: 90 
+//     },
+//     {
+//         SensorId: "S3",
+//         Temperature: 40 
+//     },
+//     {
+//         SensorId: "S4",
+//         Temperature: 40
+//     },
+//     {
+//         SensorId: "SB",
+//         Temperature: 30 
+//     },
+//     {
+//         SensorId: "SD",
+//         Temperature: 20 
+//     },
+// ];
 
 const VOXEL_DENSITY = 0.25;
 const SHADER_BLUR = 2;
 const COLD = 20;
-const WARM = 70;
+const WARM = 37;
 const sensor_names: string[] = ["S1", "S2", "S3", "S4", "SB", "SD"];
 let sensor_positions: SensorPos[] = [];
 
@@ -68,6 +68,8 @@ if (window.chrome && window.chrome.webview) {
     window.chrome.webview.addEventListener('message', (event) => {
         console.log("Data Received:", event.data);
         sensor_data = event.data as SensorData[];
+
+        build_heatmap(sensor_data);
     });
 } else {
     console.error("Page was not loaded in WebView2 environment.");

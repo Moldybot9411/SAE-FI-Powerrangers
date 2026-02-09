@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text.Json;
+using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Web.WebView2.Core;
 
@@ -12,6 +13,20 @@ public partial class HeatmapPage : Page
         InitializeComponent();
 
         InitializeAsync();
+
+        StartDatePicker.Date = new DateTime(2024, 1, 1);
+        EndDatePicker.Date = new DateTime(2024, 12, 31);
+
+        UpdateButton.Click += (e, a) =>
+        {
+            if (!StartDatePicker.Date.HasValue || !EndDatePicker.Date.HasValue)
+            {
+                MessageBox.Show("Please provide a valid Start and End Date.");
+                return;
+            }
+
+            SendData(StartDatePicker.Date.Value, EndDatePicker.Date.Value);
+        };
     }
 
     private async void InitializeAsync()
@@ -35,16 +50,22 @@ public partial class HeatmapPage : Page
         {
             if (e.IsSuccess)
             {
-                SendData();
+                SendData(DateTime.MinValue, DateTime.MaxValue);
             }
         };
 
         webView.CoreWebView2.Navigate("https://app.assets/index.html");
     }
 
-    private void SendData()
+    private void SendData(DateTime start, DateTime end)
     {
-        SensorStats[] data = MainWindow._appManager.GetSensorStats(DateTime.MinValue, DateTime.MaxValue);
+        SensorStats[] data = MainWindow._appManager.GetSensorStats(start, end);
+
+        if (data.Length == 0)
+        {
+            MessageBox.Show("The given Timeframe doesn't have any Sensor Data.");
+            return;
+        }
 
         string jsonString = JsonSerializer.Serialize(data);
 

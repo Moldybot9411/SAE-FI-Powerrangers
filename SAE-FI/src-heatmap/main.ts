@@ -56,10 +56,10 @@ let sensor_data: SensorData[] = [];
 //     },
 // ];
 
-const VOXEL_DENSITY = 0.25;
+const VOXEL_DENSITY = 0.5;
 const SHADER_BLUR = 2;
-const COLD = 20;
-const WARM = 37;
+let COLD = 20;
+let WARM = 40;
 const sensor_names: string[] = ["S1", "S2", "S3", "S4", "SB", "SD"];
 let sensor_positions: SensorPos[] = [];
 
@@ -67,7 +67,15 @@ let sensor_positions: SensorPos[] = [];
 if (window.chrome && window.chrome.webview) {
     window.chrome.webview.addEventListener('message', (event) => {
         console.log("Data Received:", event.data);
-        sensor_data = event.data as SensorData[];
+
+        switch (event.data["Type"]) {
+            case "SensorData":
+                sensor_data = event.data["Data"] as SensorData[];
+                break;
+            case "TempSettings":
+                COLD = event.data["Data"]["coldTemp"];
+                WARM = event.data["Data"]["warmTemp"];
+        }
 
         build_heatmap(sensor_data);
     });
@@ -80,7 +88,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.layers.set(1);
 const loader = new GLTFLoader();
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
@@ -131,10 +139,10 @@ async function initScene() {
         scene.add(roomModel.scene);
 
         // LIGHTS
-        const ambient = new THREE.AmbientLight(0xffffff, 0.8);
+        const ambient = new THREE.AmbientLight(0xffffff, 1);
         scene.add(ambient);
 
-        const sun = new THREE.DirectionalLight(0xff9955, 5.0);
+        const sun = new THREE.DirectionalLight(0xffffff, 1.0);
         sun.position.set(-50, 40, -5);
         sun.target = roomModel.scene;
         sun.castShadow = true;
@@ -276,28 +284,30 @@ function onWindowResize() {
     }
 }
 
-function build_heatmap(data: SensorData[]) {
-    const existingObject = scene.getObjectByName("VoxelInstances");
-    if(existingObject) scene.remove(existingObject);
-
-    const OFFSET_X = -7.8;
-    const OFFSET_Z = -5.25;
-
+async function build_heatmap(data: SensorData[]) {
     const xLimit = Math.floor(16 / VOXEL_DENSITY);
     const yLimit = Math.floor(6 / VOXEL_DENSITY);
     const zLimit = Math.floor(10.75 / VOXEL_DENSITY);
-
+    
     const scale = 1;
     const dummy = new THREE.Object3D();
     const cubeGeometry = new THREE.BoxGeometry(VOXEL_DENSITY * scale, VOXEL_DENSITY * scale, VOXEL_DENSITY * scale);
-    const material = new THREE.MeshBasicMaterial({
-        
-    });
+    const material = new THREE.MeshBasicMaterial();
+    
+    const OFFSET_X = -(xLimit * VOXEL_DENSITY * scale / 2) + VOXEL_DENSITY / 2;
+    const OFFSET_Z = -(zLimit * VOXEL_DENSITY * scale / 2) + VOXEL_DENSITY / 2;
 
-    const instancedMesh = new THREE.InstancedMesh(cubeGeometry, material, xLimit * yLimit * zLimit);
-    instancedMesh.name = "VoxelInstances";
-    instancedMesh.layers.set(1);
-    scene.add(instancedMesh);
+
+    let instancedMesh = scene.getObjectByName("VoxelInstances") as THREE.InstancedMesh;
+    if (!instancedMesh) {
+        instancedMesh = new THREE.InstancedMesh(cubeGeometry, material, xLimit * yLimit * zLimit);
+        instancedMesh.name = "VoxelInstances";
+        instancedMesh.layers.set(1);
+        instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        scene.add(instancedMesh);
+    }
+
+    console.log(instancedMesh);
 
     let x = 0;
     for (let i = 0; i < xLimit; i++) {
@@ -345,6 +355,12 @@ function build_heatmap(data: SensorData[]) {
                 x++;
             }
         }
+    }
+
+    instancedMesh.instanceMatrix.needsUpdate = true;
+
+    if (instancedMesh.instanceColor) {
+        instancedMesh.instanceColor.needsUpdate = true;
     }
 }
 

@@ -1,10 +1,25 @@
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using Microsoft.Web.WebView2.Core;
 
 namespace SAE_FI;
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum wvJsonMessageTypes
+{
+    SensorData,
+    TempSettings
+}
+
+public record wvJsonMessage
+(
+    wvJsonMessageTypes Type,
+    JsonElement Data
+);
 
 public partial class HeatmapPage : Page
 {
@@ -25,7 +40,12 @@ public partial class HeatmapPage : Page
                 return;
             }
 
-            SendData(StartDatePicker.Date.Value, EndDatePicker.Date.Value);
+            SendData(
+                StartDatePicker.Date.Value,
+                EndDatePicker.Date.Value,
+                ColdSlider.Value,
+                WarmSlider.Value
+            );
         };
     }
 
@@ -50,14 +70,18 @@ public partial class HeatmapPage : Page
         {
             if (e.IsSuccess)
             {
-                SendData(DateTime.MinValue, DateTime.MaxValue);
+                SendData(
+                    DateTime.MinValue,
+                    DateTime.MaxValue,
+                    ColdSlider.Value,
+                    WarmSlider.Value);
             }
         };
 
         webView.CoreWebView2.Navigate("https://app.assets/index.html");
     }
 
-    private void SendData(DateTime start, DateTime end)
+    private void SendData(DateTime start, DateTime end, double coldTemp, double warmTemp)
     {
         SensorStats[] data = MainWindow._appManager.GetSensorStats(start, end);
 
@@ -67,8 +91,23 @@ public partial class HeatmapPage : Page
             return;
         }
 
-        string jsonString = JsonSerializer.Serialize(data);
+        var sensorDataJson = JsonSerializer.Serialize(
+            new wvJsonMessage(
+                wvJsonMessageTypes.SensorData,
+                JsonSerializer.SerializeToElement(data)
+            )
+        );
 
-        webView.CoreWebView2.PostWebMessageAsJson(jsonString);
+        string tempSettingsJson = JsonSerializer.Serialize(
+            new wvJsonMessage(
+                wvJsonMessageTypes.TempSettings,
+                JsonSerializer.SerializeToElement(
+                    new { coldTemp, warmTemp }
+                )
+            )
+        );
+
+        webView.CoreWebView2.PostWebMessageAsJson(sensorDataJson);
+        webView.CoreWebView2.PostWebMessageAsJson(tempSettingsJson);
     }
 }

@@ -14,3 +14,12 @@ Fynn Becker - FynnBec<br>
 cd SAE-FI
 dotnet run
 ```
+
+## How to use
+1. import test csv file from /SAE-FI/temps.csv <br>
+2. view temperatures
+
+## Features
+3D heatmap <br>
+analysis graph for temperature
+

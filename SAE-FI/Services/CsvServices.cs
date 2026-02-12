@@ -6,9 +6,9 @@ namespace SAE_FI.Services
 {
     public class CsvService
     {
-        public List<CsvRow> Read(string path)
+        public List<Measurement> Read(string path)
         {
-            var rows = new List<CsvRow>();
+            var rows = new List<Measurement>();
 
             foreach (var line in File.ReadLines(path))
             {
@@ -19,7 +19,7 @@ namespace SAE_FI.Services
             return rows;
         }
 
-        private bool TryParseLine(string line, out CsvRow? row)
+        private bool TryParseLine(string line, out Measurement? row)
         {
             row = null;
             var parts = line.Split(',');
@@ -33,7 +33,7 @@ namespace SAE_FI.Services
             if (!double.TryParse(parts[2], CultureInfo.InvariantCulture, out var value))
                 return false;
 
-            row = new CsvRow(parts[0], ts, value);
+            row = new Measurement(parts[0], ts, value);
             return true;
         }
     }

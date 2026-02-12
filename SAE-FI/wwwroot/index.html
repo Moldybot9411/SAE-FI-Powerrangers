@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sensor Dashboard</title>
+
+    <!-- Unsere neue, zentrale CSS-Datei -->
+    <link rel="stylesheet" href="style.css" />
+
+    <!-- Benötigte JavaScript-Bibliotheken -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/locale/de.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.1/dist/chartjs-adapter-moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-decimation@latest/dist/chartjs-plugin-decimation.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+  </head>
+  <body>
+    <div class="dashboard-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <h2>Sensoren</h2>
+        <ul id="sensorList" class="sensor-list"></ul>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+          <h3>Zeitbereich filtern</h3>
+          <div class="filter-group">
+            <div>
+              <label for="startDate">Start:</label>
+              <input type="datetime-local" id="startDate" name="startDate" />
+            </div>
+            <div>
+              <label for="endDate">Ende:</label>
+              <input type="datetime-local" id="endDate" name="endDate" />
+            </div>
+          </div>
+          <div class="button-group">
+            <button id="filterButton">Filter anwenden</button>
+            <button id="resetFilterButton">Zurücksetzen</button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div class="chart-header">
+          <button id="resetZoomButton">Zoom zurücksetzen</button>
+        </div>
+        <div class="chart-container">
+          <div
+            id="loadingIndicator"
+            class="loading-overlay"
+            style="display: none"
+          >
+            <div class="spinner"></div>
+            <span>Lade Daten...</span>
+          </div>
+          <canvas id="temperatureChart"></canvas>
+        </div>
+      </main>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>

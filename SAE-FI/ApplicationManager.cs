@@ -28,7 +28,7 @@ namespace SAE_FI
         }
 
         // CSV-Daten importieren
-        public void ImportCsvData(IEnumerable<CsvRow> rows)
+        public void ImportCsvData(IEnumerable<Measurement> rows)
         {
             _repository.Insert(rows);
         }

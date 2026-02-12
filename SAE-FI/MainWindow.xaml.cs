@@ -26,7 +26,7 @@ namespace SAE_FI
 
         private void ImportCSV(object sender, RoutedEventArgs e)
         {
-            var rows = _csvService.Read("temps.csv");
+            var rows = _csvService.Read("tempsNew.csv");
 
             if (rows.Count == 0)
             {

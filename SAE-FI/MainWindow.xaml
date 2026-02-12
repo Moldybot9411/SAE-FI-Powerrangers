@@ -7,37 +7,34 @@
                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                  xmlns:pages="clr-namespace:SAE_FI"
                  Title="MainWindow"
-                 Height="450"
-                 Width="800"
+                 WindowState="Maximized"
+                 WindowStartupLocation="CenterScreen"
                  WindowStyle="None">
-    <StackPanel>
-        <ui:TitleBar Title="Temperatur Analyse SAE-FI"/>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <ui:TitleBar Grid.Row="0" Title="Temperatur Analyse SAE-FI" />
+
         <ui:NavigationView
+            Grid.Row="1"
+            x:Name="RootNavigation"
             Margin="4"
             PaneDisplayMode="Top"
-            x:Name="RootNavigation"
             IsBackButtonVisible="Collapsed">
+            
             <ui:NavigationView.MenuItems>
-                <ui:NavigationViewItem Content="Home"
-                                       Icon="{ui:SymbolIcon Home24}"
-                                       TargetPageType="{x:Type pages:HomePage}"/>
-
-                <ui:NavigationViewItem Content="Example"
-                                       Icon="{ui:SymbolIcon Library16}"
-                                       TargetPageType="{x:Type pages:ExamplePage}"/>
+                <ui:NavigationViewItem Content="Home" Icon="{ui:SymbolIcon Home24}" TargetPageType="{x:Type pages:HomePage}"/>
+                <ui:NavigationViewItem Content="Analysis" Icon="{ui:SymbolIcon ChartMultiple24}" TargetPageType="{x:Type pages:AnalysisPage}"/>
             </ui:NavigationView.MenuItems>
 
             <ui:NavigationView.FooterMenuItems>
-                <ui:Button
-                    Margin="0 0 4 0"
-                    Content=""
-                    Icon="{ui:SymbolIcon Delete12}"
-                    Click="DatenLöschen"/>
-                <ui:Button
-                    Content="Import CSV"
-                    Icon="{ui:SymbolIcon ArrowDownload16}"
-                    Click="ImportCSV"/>
+                <ui:Button Margin="0 0 4 0" Icon="{ui:SymbolIcon Delete12}" Click="DatenLöschen"/>
+                <ui:Button Content="Import CSV" Icon="{ui:SymbolIcon ArrowDownload16}" Click="ImportCSV"/>
             </ui:NavigationView.FooterMenuItems>
         </ui:NavigationView>
-    </StackPanel>
+    </Grid>
 </ui:FluentWindow>
